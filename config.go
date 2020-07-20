@@ -1,10 +1,15 @@
 package centrifuge
 
 const (
+	// Default prefix for centrifugo channekl
 	DefaultPrivateChannelPrefix = "$"
-	DefaultTimeoutMilliseconds  = 5000
-	DefaultPingMilliseconds     = 25000
-	DefaultPongMilliseconds     = 10000
+	// Connection timeout
+	DefaultTimeoutMilliseconds = 5000
+	// Ping milliseconds interval
+	DefaultPingMilliseconds = 25000
+	// Pong milliseconds interval
+	DefaultPongMilliseconds = 10000
+	// Compress websocket true
 	DefaultWebsocketCompression = true
 	// NumReconnect is maximum number of reconnect attempts, 0 means reconnect forever.
 	DefaultBackoffNumReconnect = 10
