@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"centrifuge-mobile"
+	"github.com/WallEnd/centrifuge-mobile"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 )
 

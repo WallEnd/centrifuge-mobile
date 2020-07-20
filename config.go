@@ -1,7 +1,7 @@
 package centrifuge
 
 const (
-	// Default prefix for centrifugo channekl
+	// Default prefix for centrifugo channel
 	DefaultPrivateChannelPrefix = "$"
 	// Connection timeout
 	DefaultTimeoutMilliseconds = 5000
@@ -23,7 +23,7 @@ const (
 	DefaultBackoffJitter = true
 )
 
-// WsConfig contains various client options.
+// Config contains various client options.
 type Config struct {
 	TimeoutMilliseconds  int
 	PrivateChannelPrefix string
