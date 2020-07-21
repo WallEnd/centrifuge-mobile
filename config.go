@@ -7,6 +7,8 @@ const (
 	DefaultTimeoutMilliseconds = 5000
 	// Ping milliseconds interval
 	DefaultPingMilliseconds = 25000
+	// Websocket Ping enabled
+	DefaultPing = true
 	// Pong milliseconds interval
 	DefaultPongMilliseconds = 10000
 	// Compress websocket true
@@ -46,6 +48,7 @@ func DefaultConfig() *Config {
 		Jitter:               DefaultBackoffJitter,
 		MinMilliseconds:      DefaultBackoffMinMilliseconds,
 		MaxMilliseconds:      DefaultBackoffMaxMilliseconds,
+		Ping:                 DefaultPing,
 		PingMilliseconds:     DefaultPingMilliseconds,
 		PongMilliseconds:     DefaultPongMilliseconds,
 		PrivateChannelPrefix: DefaultPrivateChannelPrefix,
