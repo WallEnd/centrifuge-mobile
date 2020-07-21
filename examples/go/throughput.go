@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/centrifugal/centrifuge-mobile"
+	"github.com/WallEnd/centrifuge-mobile"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 )
 

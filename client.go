@@ -52,35 +52,6 @@ var (
 	ErrBadPublishStatus     = errors.New("bad publish status")
 )
 
-const (
-	DefaultPrivateChannelPrefix = "$"
-	DefaultTimeoutMilliseconds  = 5000
-	DefaultPingMilliseconds     = 25000
-	DefaultPongMilliseconds     = 10000
-)
-
-// Config contains various client options.
-type Config struct {
-	TimeoutMilliseconds  int
-	PrivateChannelPrefix string
-	WebsocketCompression bool
-	Ping                 bool
-	PingMilliseconds     int
-	PongMilliseconds     int
-}
-
-// DefaultConfig returns Config with default options.
-func DefaultConfig() *Config {
-	return &Config{
-		Ping:                 true,
-		PingMilliseconds:     DefaultPingMilliseconds,
-		PongMilliseconds:     DefaultPongMilliseconds,
-		PrivateChannelPrefix: DefaultPrivateChannelPrefix,
-		TimeoutMilliseconds:  DefaultTimeoutMilliseconds,
-		WebsocketCompression: false,
-	}
-}
-
 // Private sign confirmes that client can subscribe on private channel.
 type PrivateSign struct {
 	Sign string
@@ -220,16 +191,22 @@ func (c *Client) nextMsgID() int32 {
 // connection Credentials, EventHandler and Config.
 func New(u string, creds *Credentials, events *EventHandler, config *Config) *Client {
 	c := &Client{
-		url:               u,
-		subs:              make(map[string]*Sub),
-		config:            config,
-		credentials:       creds,
-		waiters:           make(map[string]chan response),
-		reconnect:         true,
-		reconnectStrategy: defaultBackoffReconnect,
-		createConn:        newWSConnection,
-		events:            events,
-		delayPing:         make(chan struct{}, 32),
+		url:         u,
+		subs:        make(map[string]*Sub),
+		config:      config,
+		credentials: creds,
+		waiters:     make(map[string]chan response),
+		reconnect:   true,
+		reconnectStrategy: &backoffReconnect{
+			NumReconnect:    config.NumReconnect,
+			Factor:          config.Factor,
+			Jitter:          config.Jitter,
+			MaxMilliseconds: config.MaxMilliseconds,
+			MinMilliseconds: config.MinMilliseconds,
+		},
+		createConn: newWSConnection,
+		events:     events,
+		delayPing:  make(chan struct{}, 32),
 	}
 	return c
 }
@@ -389,14 +366,6 @@ type backoffReconnect struct {
 	MinMilliseconds int
 	// MaxMilliseconds is a maximum value of the reconnect interval.
 	MaxMilliseconds int
-}
-
-var defaultBackoffReconnect = &backoffReconnect{
-	NumReconnect:    0,
-	MinMilliseconds: 100,
-	MaxMilliseconds: 10 * 1000,
-	Factor:          2,
-	Jitter:          true,
 }
 
 func (r *backoffReconnect) reconnect(c *Client) error {

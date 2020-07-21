@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/centrifugal/centrifuge-mobile"
+	"github.com/WallEnd/centrifuge-mobile"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 )
 
@@ -66,7 +66,7 @@ func (h *subEventHandler) OnUnsubscribe(sub *centrifuge.Sub, ctx *centrifuge.Uns
 
 func newConnection(done chan struct{}) *centrifuge.Client {
 	creds := credentials()
-	wsURL := "ws://localhost:8000/connection/websocket"
+	wsURL := "ws://localhost:8008/connection/websocket"
 
 	handler := &eventHandler{
 		done: done,
