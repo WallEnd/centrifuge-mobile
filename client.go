@@ -39,17 +39,19 @@ func NewCredentials(user, timestamp, info, token string) *Credentials {
 }
 
 var (
-	ErrTimeout              = errors.New("timed out")
-	ErrInvalidMessage       = errors.New("invalid message")
-	ErrDuplicateWaiter      = errors.New("waiter with specified uid already exists")
-	ErrWaiterClosed         = errors.New("waiter closed")
-	ErrClientStatus         = errors.New("wrong client status to make operation")
-	ErrClientDisconnected   = errors.New("client disconnected")
-	ErrClientExpired        = errors.New("client expired")
-	ErrReconnectFailed      = errors.New("reconnect failed")
-	ErrBadSubscribeStatus   = errors.New("bad subscribe status")
-	ErrBadUnsubscribeStatus = errors.New("bad unsubscribe status")
-	ErrBadPublishStatus     = errors.New("bad publish status")
+	ErrTimeout                    = errors.New("timed out")
+	ErrInvalidMessage             = errors.New("invalid message")
+	ErrDuplicateWaiter            = errors.New("waiter with specified uid already exists")
+	ErrWaiterClosed               = errors.New("waiter closed")
+	ErrClientStatus               = errors.New("wrong client status to make operation")
+	ErrClientDisconnected         = errors.New("client disconnected")
+	ErrClientExpired              = errors.New("client expired")
+	ErrReconnectFailed            = errors.New("reconnect failed")
+	ErrBadSubscribeStatus         = errors.New("bad subscribe status")
+	ErrBadUnsubscribeStatus       = errors.New("bad unsubscribe status")
+	ErrBadPublishStatus           = errors.New("bad publish status")
+	ErrClientClosed               = errors.New("Client closed connection")
+	ErrConnectionAttemptsExpended = errors.New("Reconcetion attemts is expended")
 )
 
 // Private sign confirmes that client can subscribe on private channel.
@@ -168,6 +170,7 @@ type Client struct {
 	conn              connection
 	msgID             int32
 	status            int
+	reconnects        int
 	id                string
 	subsMutex         sync.RWMutex
 	subs              map[string]*Sub
@@ -197,6 +200,7 @@ func New(u string, creds *Credentials, events *EventHandler, config *Config) *Cl
 		credentials: creds,
 		waiters:     make(map[string]chan response),
 		reconnect:   true,
+		reconnects:  0,
 		reconnectStrategy: &backoffReconnect{
 			NumReconnect:    config.NumReconnect,
 			Factor:          config.Factor,
@@ -375,17 +379,19 @@ func (r *backoffReconnect) reconnect(c *Client) error {
 		Factor: r.Factor,
 		Jitter: r.Jitter,
 	}
-	reconnects := 0
 
 	for {
-		if r.NumReconnect > 0 && reconnects >= r.NumReconnect {
+		if r.NumReconnect > 0 && c.reconnects >= r.NumReconnect {
 			break
 		}
 		time.Sleep(b.Duration())
 
-		reconnects++
+		c.reconnects++
 		err := c.doReconnect()
 		if err != nil {
+			if err == ErrClientClosed {
+				return err
+			}
 			continue
 		}
 
@@ -396,7 +402,14 @@ func (r *backoffReconnect) reconnect(c *Client) error {
 }
 
 func (c *Client) doReconnect() error {
+	c.mutex.RLock()
 
+	if c.status == CLOSED {
+		c.mutex.RUnlock()
+		return ErrClientClosed
+	}
+
+	c.mutex.RUnlock()
 	err := c.connect()
 	if err != nil {
 		c.close()
@@ -601,7 +614,7 @@ func (c *Client) connect() error {
 	c.mutex.Lock()
 	if c.status == DISCONNECTED {
 		c.mutex.Unlock()
-		return nil
+		return ErrReconnectFailed
 	}
 
 	c.conn = conn
