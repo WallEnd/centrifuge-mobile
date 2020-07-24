@@ -51,7 +51,7 @@ var (
 	ErrBadUnsubscribeStatus       = errors.New("bad unsubscribe status")
 	ErrBadPublishStatus           = errors.New("bad publish status")
 	ErrClientClosed               = errors.New("Client closed connection")
-	ErrConnectionAttemptsExpended = errors.New("Reconcetion attemts is expended")
+	ErrConnectionAttemptsExpended = errors.New("Reconcetion attempts is expended")
 )
 
 // Private sign confirmes that client can subscribe on private channel.
