@@ -381,12 +381,17 @@ func (r *backoffReconnect) reconnect(c *Client) error {
 	}
 
 	for {
+		c.mutex.Lock()
 		if r.NumReconnect > 0 && c.reconnects >= r.NumReconnect {
+			c.mutex.Unlock()
 			break
 		}
-		time.Sleep(b.Duration())
 
 		c.reconnects++
+		c.mutex.Unlock()
+
+		time.Sleep(b.Duration())
+
 		err := c.doReconnect()
 		if err != nil {
 			if err == ErrClientClosed {
