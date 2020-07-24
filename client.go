@@ -393,10 +393,12 @@ func (r *backoffReconnect) reconnect(c *Client) error {
 		time.Sleep(b.Duration())
 
 		err := c.doReconnect()
+
+		if err == ErrClientClosed {
+			return err
+		}
+
 		if err != nil {
-			if err == ErrClientClosed {
-				return err
-			}
 			continue
 		}
 
